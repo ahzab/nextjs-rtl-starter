@@ -12,7 +12,8 @@ export function ProductCard({ product, lang, compact = false }: { product: Produ
   const href = `/${lang}/products/${product.id}`;
   return (
     <article className="flex h-full flex-col gap-2.5">
-      <Link href={href} tabIndex={-1}>
+      {/* A second way in for the pointer; keyboard and screen readers use the name link below. */}
+      <Link href={href} tabIndex={-1} aria-hidden>
         <ProductImage category={product.category} />
       </Link>
       <div className="flex flex-col gap-0.5">
