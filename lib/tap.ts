@@ -39,7 +39,9 @@ export type CreateCharge = {
   description: string;
   orderId: string;
   customer: { first_name: string; email: string };
-  token: string;
+  // A card or Apple Pay token (tok_…), or a method's source: KNET is
+  // { id: "src_kw.knet" }, STC Pay adds the customer's STC Pay number.
+  source: { id: string; phone?: { country_code: string; number: string } };
   redirectUrl: string;
   postUrl: string;
   lang: string;
@@ -52,6 +54,11 @@ export class TapError extends Error {
     message: string,
   ) {
     super(message);
+  }
+
+  // 1243: the method is valid but not turned on for this Tap account.
+  get methodNotEnabled(): boolean {
+    return this.code === "1243";
   }
 
   // Tap answers an unknown charge with 400, not 404: 1144 "Charge id not
@@ -110,7 +117,7 @@ export function createCharge(input: CreateCharge): Promise<Charge> {
       description: input.description,
       reference: { order: input.orderId },
       customer: input.customer,
-      source: { id: input.token },
+      source: input.source,
       redirect: { url: input.redirectUrl },
       post: { url: input.postUrl },
     }),
@@ -119,4 +126,14 @@ export function createCharge(input: CreateCharge): Promise<Charge> {
 
 export function retrieveCharge(id: string): Promise<Charge> {
   return call<Charge>(`/charges/${encodeURIComponent(id)}`);
+}
+
+// STC Pay texts the customer a one-time code after the charge is created; the
+// charge completes when the code is sent back on it.
+// https://developers.tap.company/docs/stcpay
+export function submitStcPayOtp(chargeId: string, otp: string): Promise<Charge> {
+  return call<Charge>(`/charges/${encodeURIComponent(chargeId)}`, {
+    method: "PUT",
+    body: JSON.stringify({ gateway_response: { name: "STC_PAY", response: { reference: { otp } } } }),
+  });
 }

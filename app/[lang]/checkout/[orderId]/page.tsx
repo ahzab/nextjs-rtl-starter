@@ -5,11 +5,14 @@ import { notFound } from "next/navigation";
 import { Alert } from "@/components/alert";
 import { Heading } from "@/components/heading";
 import { StorePage } from "@/components/store-page";
+import { PaymentMethods, type MethodState } from "@/components/payment-methods";
 import { TapCardField } from "@/components/tap-card-field";
 import { buttonVariants } from "@/components/ui/button";
 import { getDictionary, hasLocale } from "@/lib/i18n";
+import { enabledMethods, methodCurrency, takesCurrency } from "@/lib/methods";
 import { formatMinor, toTapAmount } from "@/lib/money";
 import { canPay, getOrder } from "@/lib/orders";
+import { isTestMode } from "@/lib/tap";
 
 // Screen 2: order summary and Tap's card field.
 export default async function CheckoutPage({ params }: PageProps<"/[lang]/checkout/[orderId]">) {
@@ -71,8 +74,26 @@ export default async function CheckoutPage({ params }: PageProps<"/[lang]/checko
   } else if (!publicKey) {
     field = <Alert kind="error" title={t.checkout.missingKey} />;
   } else {
+    const methods: MethodState[] = enabledMethods().map((method) =>
+      takesCurrency(method, order.currency)
+        ? { method, status: "ok" }
+        : { method, status: "wrong_currency", currency: methodCurrency(method) },
+    );
     field = (
       <TapCardField
+        before={
+          <PaymentMethods
+            lang={lang}
+            orderId={order.id}
+            amount={toTapAmount(order.amount, order.currency)}
+            currency={order.currency}
+            publicKey={publicKey}
+            merchantId={process.env.TAP_MERCHANT_ID}
+            testMode={isTestMode()}
+            methods={methods}
+            labels={t.methods}
+          />
+        }
         lang={lang}
         publicKey={publicKey}
         merchantId={process.env.TAP_MERCHANT_ID}

@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Alert } from "@/components/alert";
 import { Spinner } from "@/components/spinner";
@@ -23,6 +23,8 @@ type Props = {
   amount: number; // major units, what Tap's field expects
   currency: string;
   labels: { pay: string; paying: string; formLabel: string; loadFailed: string; cardInvalid: string; chargeFailed: string };
+  // Other ways to pay, drawn above the card inputs (Apple Pay, STC Pay, KNET).
+  before?: ReactNode;
 };
 
 type Phase = "loading" | "ready" | "tokenizing" | "charging" | "redirecting";
@@ -31,7 +33,7 @@ type Phase = "loading" | "ready" | "tokenizing" | "charging" | "redirecting";
 // ours. The card never reaches our server: Tap turns it into a token, our
 // server creates the charge from the token, and Tap sends the customer through
 // 3-D Secure and back to the result page.
-export function TapCardField({ lang, publicKey, merchantId, orderId, amount, currency, labels }: Props) {
+export function TapCardField({ lang, publicKey, merchantId, orderId, amount, currency, labels, before }: Props) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
@@ -113,6 +115,7 @@ export function TapCardField({ lang, publicKey, merchantId, orderId, amount, cur
         onReady={() => setSdkLoaded(true)}
         onError={() => setError(labels.loadFailed)}
       />
+      {before}
       <div id={ELEMENT_ID} className="min-h-[180px]" />
       {error ? <Alert kind="error" title={error} /> : null}
       <Button className="h-[50px] w-full" onClick={pay} disabled={phase === "loading" || working} aria-busy={working}>
