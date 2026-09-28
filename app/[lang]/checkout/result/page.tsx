@@ -7,6 +7,7 @@ import { Receipt } from "@/components/receipt";
 import { StorePage } from "@/components/store-page";
 import { buttonVariants } from "@/components/ui/button";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { orderItems } from "@/lib/order-items";
 import { canPay, getOrder } from "@/lib/orders";
 import { confirmCharge } from "@/lib/payments";
 import type { Charge } from "@/lib/tap";
@@ -82,7 +83,7 @@ export default async function ResultPage({ params, searchParams }: PageProps<"/[
         lang={lang}
         state="paid"
         currency={order.currency}
-        items={[{ label: order.description, amount: order.amount }]}
+        items={orderItems(order, lang)}
         orderId={order.id}
         tapStatus={charge.status}
         paidWith={paidWith(charge, lang)}
@@ -113,7 +114,7 @@ export default async function ResultPage({ params, searchParams }: PageProps<"/[
         lang={lang}
         state="failed"
         currency={order.currency}
-        items={[{ label: order.description, amount: order.amount }]}
+        items={orderItems(order, lang)}
         orderId={order.id}
         tapStatus={charge?.status}
       />

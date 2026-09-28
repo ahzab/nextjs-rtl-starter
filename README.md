@@ -25,7 +25,7 @@ This repo is that glue.
 
 ## What's in it
 
-- `app/[lang]/page.tsx`: a store page with one sample order. **Pay now** creates the order on the server (`app/[lang]/actions.ts`), so the amount never comes from the browser.
+- `app/[lang]/page.tsx`, `products/[id]`, `cart`: a small demo store (8 sample products in `lib/products.ts`, a cart kept in a cookie by `lib/cart.ts`). **Buy now** and the cart's **Pay** create the order on the server (`app/[lang]/actions.ts`) from the catalogue's prices, so the amount never comes from the browser.
 - `app/[lang]/checkout/[orderId]/page.tsx`: Tap's card field (Card SDK v2) in Arabic RTL or English, with Apple Pay, STC Pay and KNET above it when they're turned on. The card is tokenized in the browser; only the token reaches your server.
 - `app/api/charges/route.ts`: creates the charge from the token (or the STC Pay or KNET source) and returns the page Tap sends the customer to, usually 3-D Secure.
 - `app/api/charges/[id]/otp/route.ts`: sends the STC Pay SMS code back on the charge.
@@ -62,7 +62,7 @@ You need Node 22 or later.
 
    Every variable is listed with a comment in `.env.example`.
 
-3. **Run it.** Start `npm run dev`, open `http://localhost:3000/ar` (or `/en`), press **Pay now**, and pay with one of Tap's [test cards](https://developers.tap.company/reference/testing-cards), expiry `01/39`, any CVV and any cardholder name:
+3. **Run it.** Start `npm run dev`, open `http://localhost:3000/ar` (or `/en`), add a product to the cart (or press **Buy now** on its page), pay for the cart, and use one of Tap's [test cards](https://developers.tap.company/reference/testing-cards), expiry `01/39`, any CVV and any cardholder name:
 
    | Card | Number |
    |---|---|
@@ -78,7 +78,7 @@ You need Node 22 or later.
 
 ## How a payment flows
 
-1. **Pay now** creates an order on the server and opens its checkout page.
+1. **Buy now** or the cart's **Pay** creates an order on the server, priced line by line from `lib/products.ts`, and opens its checkout page.
 2. The checkout page renders Tap's card field with your public key and the order's amount and currency.
 3. On **Pay**, the browser tokenizes the card (`tok_…`). The card number never reaches your server.
 4. Your server creates a charge from the token, taking the amount from the order, with a `redirect.url` and a `post.url`. It sends the customer to Tap's 3-D Secure page.
@@ -151,7 +151,7 @@ The customer enters their STC Pay number, gets a code by SMS and types it in. Th
 
 ### KNET
 
-KNET takes Kuwaiti dinars only, so it shows only on a KWD order. To try it, set `SAMPLE_CURRENCY=KWD` so the sample order is priced in dinars. The customer is sent to KNET's page to enter the card and PIN, then back to the result page. Tap's KNET test card: 8888880000000001, expiry 09/30, PIN 1234.
+KNET takes Kuwaiti dinars only, so it shows only on a KWD order. To try it, set `SAMPLE_CURRENCY=KWD` so the store prices everything in dinars. The customer is sent to KNET's page to enter the card and PIN, then back to the result page. Tap's KNET test card: 8888880000000001, expiry 09/30, PIN 1234.
 
 KNET also needs Tap to turn it on for your account. Tap's shared test keys create KNET charges but decline them straight away (code 515), so test it with your own Tap test account.
 

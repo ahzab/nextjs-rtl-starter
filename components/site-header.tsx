@@ -2,6 +2,7 @@ import { ReceiptText } from "lucide-react";
 import Link from "next/link";
 
 import { LangSwitch } from "@/components/lang-switch";
+import { CartButton } from "@/components/store/cart-button";
 import { getDictionary, type Locale } from "@/lib/i18n";
 
 export function SiteHeader({ lang }: { lang: Locale }) {
@@ -12,7 +13,10 @@ export function SiteHeader({ lang }: { lang: Locale }) {
         <ReceiptText className="size-[22px] text-primary" aria-hidden />
         {t.brand}
       </Link>
-      <LangSwitch to={lang === "ar" ? "en" : "ar"} label={t.switchLabel} text={t.switchTo} />
+      <div className="flex items-center gap-3 md:gap-5">
+        <LangSwitch to={lang === "ar" ? "en" : "ar"} label={t.switchLabel} text={t.switchTo} />
+        <CartButton lang={lang} />
+      </div>
     </header>
   );
 }

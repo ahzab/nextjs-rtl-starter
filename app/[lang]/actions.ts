@@ -2,19 +2,54 @@
 
 import { redirect } from "next/navigation";
 
-import { getDictionary, hasLocale } from "@/lib/i18n";
-import { toMinor } from "@/lib/money";
+import { addToCart, cartLines, linesTotal, withQuantity, type Cart } from "@/lib/cart";
+import { readCart, writeCart } from "@/lib/cart-cookie";
+import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { createOrder } from "@/lib/orders";
-import { SAMPLE_ORDER } from "@/lib/sample-order";
+import { getProduct, STORE_CURRENCY } from "@/lib/products";
 
-// Pay now: the order (and its amount) is created on the server, then the
-// customer moves to the checkout page for it.
-export async function startCheckout(lang: string) {
-  const locale = hasLocale(lang) ? lang : "ar";
+const localeOf = (lang: string): Locale => (hasLocale(lang) ? lang : "ar");
+
+const quantityFrom = (form: FormData | undefined) => {
+  const n = Number(form?.get("quantity") ?? 1);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+};
+
+// The order and its amount are always built here, from the catalogue's prices:
+// the browser only ever sends product ids and quantities.
+async function checkout(lang: Locale, cart: Cart) {
+  const lines = cartLines(cart);
+  if (lines.length === 0) redirect(`/${lang}/cart`);
   const order = await createOrder({
-    description: getDictionary(locale).home.product,
-    amount: toMinor(SAMPLE_ORDER.amount, SAMPLE_ORDER.currency),
-    currency: SAMPLE_ORDER.currency,
+    description: getDictionary(lang).store.orderDescription,
+    amount: linesTotal(lines),
+    currency: STORE_CURRENCY,
+    lines,
   });
-  redirect(`/${locale}/checkout/${order.id}`);
+  redirect(`/${lang}/checkout/${order.id}`);
+}
+
+export async function addToCartAction(productId: string, form?: FormData) {
+  if (!getProduct(productId)) return;
+  await writeCart(addToCart(await readCart(), productId, quantityFrom(form)));
+}
+
+export async function setQuantityAction(productId: string, quantity: number) {
+  await writeCart(withQuantity(await readCart(), productId, quantity));
+}
+
+// Pay for the whole cart. The cart is emptied once the order exists: a retry
+// after a failed payment reuses the order, not the cart.
+export async function checkoutCartAction(lang: string) {
+  const locale = localeOf(lang);
+  const cart = await readCart();
+  if (Object.keys(cart).length > 0) await writeCart({});
+  await checkout(locale, cart);
+}
+
+// Buy now: an order for this product alone, leaving the cart as it is.
+export async function buyNowAction(lang: string, productId: string, form?: FormData) {
+  const locale = localeOf(lang);
+  if (!getProduct(productId)) redirect(`/${locale}`);
+  await checkout(locale, withQuantity({}, productId, quantityFrom(form)));
 }
