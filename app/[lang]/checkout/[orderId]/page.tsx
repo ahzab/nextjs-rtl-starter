@@ -11,6 +11,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getDictionary, hasLocale } from "@/lib/i18n";
 import { enabledMethods, methodCurrency, takesCurrency } from "@/lib/methods";
 import { formatMinor, toTapAmount } from "@/lib/money";
+import { orderItems } from "@/lib/order-items";
 import { canPay, getOrder } from "@/lib/orders";
 import { isTestMode } from "@/lib/tap";
 
@@ -34,10 +35,12 @@ export default async function CheckoutPage({ params }: PageProps<"/[lang]/checko
   const summary = (
     <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card px-[18px] py-4">
       <div className="text-[13px] text-muted-foreground">{t.checkout.summary}</div>
-      <div className="flex justify-between text-[15px]">
-        <span>{order.description}</span>
-        <span className="tabular">{total}</span>
-      </div>
+      {orderItems(order, lang).map((item) => (
+        <div key={item.label} className="flex justify-between gap-3 text-[15px]">
+          <span>{item.label}</span>
+          <span className="tabular whitespace-nowrap">{formatMinor(item.amount, order.currency, lang)}</span>
+        </div>
+      ))}
       <div className="border-t border-border" />
       <div className="flex justify-between text-[17px] font-semibold">
         <span>{t.checkout.total}</span>

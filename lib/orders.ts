@@ -15,10 +15,14 @@ import { randomUUID } from "node:crypto";
 
 export type OrderStatus = "pending" | "paid" | "failed" | "refunded";
 
+// One product line, priced on the server when the order is created.
+export type OrderLine = { productId: string; quantity: number; unitAmount: number }; // unitAmount in minor units
+
 export type Order = {
   id: string;
   description: string;
-  amount: number; // minor units
+  amount: number; // minor units, the sum of the lines
+  lines: OrderLine[];
   currency: string;
   status: OrderStatus;
   chargeId: string | null; // the latest Tap charge for this order
@@ -74,8 +78,9 @@ function backend(): Backend {
   return url && token ? redis(url.replace(/\/$/, ""), token) : memory();
 }
 
-export async function createOrder(input: { description: string; amount: number; currency: string }): Promise<Order> {
+export async function createOrder(input: { description: string; amount: number; currency: string; lines?: OrderLine[] }): Promise<Order> {
   const order: Order = {
+    lines: [],
     ...input,
     id: randomUUID(),
     status: "pending",
