@@ -6,6 +6,7 @@ import { useId, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Alert } from "@/components/alert";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
+import { apiPath } from "@/lib/app-url";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { Method } from "@/lib/methods";
 import { minorDigits } from "@/lib/money";
@@ -42,7 +43,7 @@ const fill = (text: string, values: Record<string, string>) =>
 // POSTs to /api/charges and follows the answer: a page to send the customer
 // to, or (STC Pay) a charge waiting for the texted code.
 async function startCharge(payload: Record<string, unknown>): Promise<{ url?: string; otp?: boolean; chargeId?: string; error?: string }> {
-  const res = await fetch("/api/charges", {
+  const res = await fetch(apiPath("/api/charges"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -131,7 +132,7 @@ export function PaymentMethods({ lang, orderId, amount, currency, publicKey, mer
     setError(null);
     setBusy("stcpay");
     try {
-      const res = await fetch(`/api/charges/${encodeURIComponent(stc.chargeId)}/otp`, {
+      const res = await fetch(apiPath(`/api/charges/${encodeURIComponent(stc.chargeId)}/otp`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId, otp, lang }),

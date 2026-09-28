@@ -11,7 +11,7 @@ import { SAMPLE_ORDER } from "@/lib/sample-order";
 // customer moves to the checkout page for it.
 export async function startCheckout(lang: string) {
   const locale = hasLocale(lang) ? lang : "ar";
-  const order = createOrder({
+  const order = await createOrder({
     description: getDictionary(locale).home.product,
     amount: toMinor(SAMPLE_ORDER.amount, SAMPLE_ORDER.currency),
     currency: SAMPLE_ORDER.currency,

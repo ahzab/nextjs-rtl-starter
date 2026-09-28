@@ -22,11 +22,11 @@ export async function confirmCharge(chargeId: string): Promise<Confirmation> {
     throw err;
   }
 
-  const order = getOrder(charge.reference?.order);
+  const order = await getOrder(charge.reference?.order);
   const rejection = checkCharge(charge, order);
   if (rejection || !order) return { ok: false, reason: rejection ?? "no_order", charge };
 
-  return { ok: true, order: markPaid(order.id, charge.id)!, charge };
+  return { ok: true, order: (await markPaid(order.id, charge.id))!, charge };
 }
 
 // The webhook's other half. A declined, failed or cancelled charge marks its
@@ -41,7 +41,7 @@ export async function failCharge(chargeId: string): Promise<Order | null> {
     if (err instanceof TapError && err.notFound) return null;
     throw err;
   }
-  const order = getOrder(charge.reference?.order);
+  const order = await getOrder(charge.reference?.order);
   if (!order || !FAILED_STATUSES.has(charge.status)) return order;
   return markFailed(order.id, charge.id);
 }

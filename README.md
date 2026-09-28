@@ -35,7 +35,7 @@ This repo is that glue.
 - `lib/payments.ts` and `lib/verify.ts`: the one place an order becomes paid, used by both the result page and the webhook.
 - `lib/webhook.ts`: the `hashstring` check.
 - `lib/money.ts`: amounts in minor units, with each currency's decimals taken from `Intl` (2 for SAR, AED and QAR, 3 for KWD, BHD and OMR). Arabic prices use Western digits.
-- `lib/orders.ts`: an in-memory order store, so the demo runs with no database. Replace it with your own table.
+- `lib/orders.ts`: the order store, in memory by default so the demo runs with no database, or Redis (Upstash) when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set. Replace it with your own table; its functions are already async.
 - `proxy.ts`: sends `/` to `/ar` or `/en` by the browser's language, Arabic when unsure.
 - shadcn/ui with `rtl: true`, IBM Plex Sans Arabic, and `dir="rtl"` set per locale, so layout, spacing and icons flip for Arabic.
 
@@ -160,7 +160,7 @@ KNET also needs Tap to turn it on for your account. Tap's shared test keys creat
 - Switch to your own `pk_live_…` and `sk_live_…` keys once Tap activates your account. A live secret key also turns off the test-mode banner and the developer notes.
 - Keep `TAP_SECRET_KEY` server-only. Never prefix it with `NEXT_PUBLIC_`.
 - Set `APP_URL` to your production URL.
-- Replace `lib/orders.ts` (an in-memory demo store) with your database. In memory, orders vanish on restart and aren't shared between serverless instances.
+- Replace `lib/orders.ts` with your database. In memory, orders vanish on restart and aren't shared between serverless instances; the Redis option is enough for a demo, not for real orders.
 - Replace the sample customer in `app/api/charges/route.ts` with your signed-in customer. Tap needs a first name plus an email or phone on every charge.
 
 ## Need subscriptions?

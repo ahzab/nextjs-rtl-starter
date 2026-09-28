@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasLocale } from "@/lib/i18n";
+import { appUrl } from "@/lib/app-url";
 import { getOrder } from "@/lib/orders";
 import { submitStcPayOtp, TapError } from "@/lib/tap";
 
@@ -15,7 +16,7 @@ export async function POST(request: Request, { params }: RouteContext<"/api/char
 
   if (!/^\d{4,8}$/.test(otp)) return NextResponse.json({ error: "invalid_otp" }, { status: 400 });
   // Only the order's latest charge, and only while it is waiting for payment.
-  const order = getOrder(typeof body?.orderId === "string" ? body.orderId : "");
+  const order = await getOrder(typeof body?.orderId === "string" ? body.orderId : "");
   if (!order || order.chargeId !== id || order.status !== "pending") {
     return NextResponse.json({ error: "no_order" }, { status: 404 });
   }
@@ -27,6 +28,6 @@ export async function POST(request: Request, { params }: RouteContext<"/api/char
     console.error("[charges] otp failed", err instanceof TapError ? err.message : err);
     return NextResponse.json({ error: "otp_failed" }, { status: 400 });
   }
-  const base = (process.env.APP_URL || new URL(request.url).origin).replace(/\/$/, "");
+  const base = appUrl(request);
   return NextResponse.json({ url: `${base}/${lang}/checkout/result?tap_id=${encodeURIComponent(id)}` });
 }
