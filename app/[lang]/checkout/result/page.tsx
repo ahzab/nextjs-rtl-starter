@@ -7,7 +7,7 @@ import { Receipt } from "@/components/receipt";
 import { StorePage } from "@/components/store-page";
 import { buttonVariants } from "@/components/ui/button";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
-import { getOrder } from "@/lib/orders";
+import { canPay, getOrder } from "@/lib/orders";
 import { confirmCharge } from "@/lib/payments";
 import type { Charge } from "@/lib/tap";
 import { cn } from "@/lib/utils";
@@ -99,7 +99,7 @@ export default async function ResultPage({ params, searchParams }: PageProps<"/[
   // The bank's words only mean something when the charge itself didn't go through.
   const settled = charge && !["INITIATED", "IN_PROGRESS"].includes(charge.status);
   const bank = reason === "not_captured" && settled ? charge.response?.message : undefined;
-  const retryOrder = order?.status === "pending" ? order.id : null;
+  const retryOrder = order && canPay(order) ? order.id : null;
   return grid(
     <>
       <Heading text={t.result.failed} className="text-[30px] md:text-[44px]" />
