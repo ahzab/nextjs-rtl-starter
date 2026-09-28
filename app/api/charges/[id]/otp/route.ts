@@ -27,6 +27,6 @@ export async function POST(request: Request, { params }: RouteContext<"/api/char
     console.error("[charges] otp failed", err instanceof TapError ? err.message : err);
     return NextResponse.json({ error: "otp_failed" }, { status: 400 });
   }
-  const base = (process.env.APP_URL ?? new URL(request.url).origin).replace(/\/$/, "");
+  const base = (process.env.APP_URL || new URL(request.url).origin).replace(/\/$/, "");
   return NextResponse.json({ url: `${base}/${lang}/checkout/result?tap_id=${encodeURIComponent(id)}` });
 }

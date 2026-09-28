@@ -13,7 +13,7 @@ const SAMPLE_CUSTOMER = { first_name: "Saja", email: "saja@example.com" };
 // Where Tap sends the customer back and posts the webhook. APP_URL overrides
 // the request's own origin, which is what you want behind a tunnel (t8).
 function baseUrl(request: Request): string {
-  return (process.env.APP_URL ?? new URL(request.url).origin).replace(/\/$/, "");
+  return (process.env.APP_URL || new URL(request.url).origin).replace(/\/$/, "");
 }
 
 type Source = { id: string; phone?: { country_code: string; number: string } };
