@@ -9,7 +9,7 @@ import { TapCardField } from "@/components/tap-card-field";
 import { buttonVariants } from "@/components/ui/button";
 import { getDictionary, hasLocale } from "@/lib/i18n";
 import { formatMinor, toTapAmount } from "@/lib/money";
-import { getOrder } from "@/lib/orders";
+import { canPay, getOrder } from "@/lib/orders";
 
 // Screen 2: order summary and Tap's card field.
 export default async function CheckoutPage({ params }: PageProps<"/[lang]/checkout/[orderId]">) {
@@ -51,7 +51,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[lang]/checko
   );
 
   let field;
-  if (order.status !== "pending") {
+  if (!canPay(order)) {
     field = (
       <Alert
         kind="info"
