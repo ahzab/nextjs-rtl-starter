@@ -1,29 +1,29 @@
 import "server-only";
 
-import { fetchPayment, MoyasarError, type Payment } from "./moyasar";
 import { getOrder, markPaid, type Order } from "./orders";
-import { checkPayment, type Rejection } from "./verify";
+import { retrieveCharge, TapError, type Charge } from "./tap";
+import { checkCharge, type Rejection } from "./verify";
 
 export type Confirmation =
-  | { ok: true; order: Order; payment: Payment }
-  | { ok: false; reason: Rejection | "not_found"; payment?: Payment };
+  | { ok: true; order: Order; charge: Charge }
+  | { ok: false; reason: Rejection | "not_found"; charge?: Charge };
 
-// The one place a payment becomes "paid" in this app. The redirect page, the
-// verify API and the webhook all come through here, and none of them trusts
-// what the browser said: the payment is fetched from Moyasar with the secret
-// key and checked against the order it claims to pay for.
-export async function confirmPayment(paymentId: string): Promise<Confirmation> {
-  let payment: Payment;
+// The one place an order becomes "paid". The result page (and the webhook, t5)
+// both come through here, and neither trusts what the browser said: the charge
+// is retrieved from Tap with the secret key and checked against the order it
+// claims to pay for. Calling it twice for the same charge is safe.
+export async function confirmCharge(chargeId: string): Promise<Confirmation> {
+  let charge: Charge;
   try {
-    payment = await fetchPayment(paymentId);
+    charge = await retrieveCharge(chargeId);
   } catch (err) {
-    if (err instanceof MoyasarError && err.status === 404) return { ok: false, reason: "not_found" };
+    if (err instanceof TapError && err.notFound) return { ok: false, reason: "not_found" };
     throw err;
   }
 
-  const order = getOrder(payment.metadata?.order_id);
-  const rejection = checkPayment(payment, order);
-  if (rejection || !order) return { ok: false, reason: rejection ?? "no_order", payment };
+  const order = getOrder(charge.reference?.order);
+  const rejection = checkCharge(charge, order);
+  if (rejection || !order) return { ok: false, reason: rejection ?? "no_order", charge };
 
-  return { ok: true, order: markPaid(order.id, payment.id)!, payment };
+  return { ok: true, order: markPaid(order.id, charge.id)!, charge };
 }

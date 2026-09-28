@@ -13,7 +13,7 @@ export type Order = {
   amount: number; // minor units
   currency: string;
   status: OrderStatus;
-  paymentId: string | null;
+  chargeId: string | null; // the latest Tap charge for this order
   createdAt: string;
   paidAt: string | null;
 };
@@ -26,7 +26,7 @@ export function createOrder(input: { description: string; amount: number; curren
     ...input,
     id: randomUUID(),
     status: "pending",
-    paymentId: null,
+    chargeId: null,
     createdAt: new Date().toISOString(),
     paidAt: null,
   };
@@ -38,21 +38,23 @@ export function getOrder(id: string | undefined | null): Order | null {
   return id ? (store.get(id) ?? null) : null;
 }
 
-export function attachPayment(orderId: string, paymentId: string): Order | null {
+// A retry creates a new charge, so the latest one wins. The result page only
+// accepts the charge recorded here, which stops an old charge id being replayed.
+export function attachCharge(orderId: string, chargeId: string): Order | null {
   const order = store.get(orderId);
   if (!order || order.status !== "pending") return order ?? null;
-  order.paymentId = paymentId;
+  order.chargeId = chargeId;
   return order;
 }
 
 // Idempotent: the redirect and the webhook both confirm the same payment, and
 // either can arrive first.
-export function markPaid(orderId: string, paymentId: string): Order | null {
+export function markPaid(orderId: string, chargeId: string): Order | null {
   const order = store.get(orderId);
   if (!order) return null;
   if (order.status !== "paid" && order.status !== "refunded") {
     order.status = "paid";
-    order.paymentId = paymentId;
+    order.chargeId = chargeId;
     order.paidAt = new Date().toISOString();
   }
   return order;
