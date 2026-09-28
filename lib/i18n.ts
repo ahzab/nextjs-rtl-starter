@@ -22,6 +22,11 @@ const ar = {
     testModeCheckout: "وضع الاختبار: استخدم بطاقات Tap التجريبية",
     testModeShort: "وضع الاختبار",
   },
+  notFound: {
+    title: "الصفحة غير موجودة",
+    body: "ربما تغيّر الرابط أو انتهى هذا الطلب التجريبي.",
+    back: "العودة إلى المتجر",
+  },
   home: {
     title: "قهوة وتمور وبخور.",
     titleSoft: "بالدفع عبر Tap.",
@@ -141,6 +146,11 @@ const en: typeof ar = {
     testMode: "Test mode: no real money is charged",
     testModeCheckout: "Test mode: use Tap's test cards",
     testModeShort: "Test mode",
+  },
+  notFound: {
+    title: "Page not found",
+    body: "The link may have changed, or this demo order has expired.",
+    back: "Back to the store",
   },
   home: {
     title: "Coffee, dates and incense.",
