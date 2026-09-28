@@ -180,7 +180,7 @@ This repo covers one-time payments. Monthly billing on Tap means:
 - Full Arabic and English UI, with SAR, KWD and AED formatting
 - Deploy guide and updates
 
-**[Join the early-access list](<GUMROAD_URL>)**
+The early-access list opens soon. Star or watch this repo to hear when it does.
 
 ## License
 
