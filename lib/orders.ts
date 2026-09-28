@@ -38,11 +38,17 @@ export function getOrder(id: string | undefined | null): Order | null {
   return id ? (store.get(id) ?? null) : null;
 }
 
+// A failed order can still be paid: the customer retries with a new charge.
+export function canPay(order: Order): boolean {
+  return order.status === "pending" || order.status === "failed";
+}
+
 // A retry creates a new charge, so the latest one wins. The result page only
 // accepts the charge recorded here, which stops an old charge id being replayed.
 export function attachCharge(orderId: string, chargeId: string): Order | null {
   const order = store.get(orderId);
-  if (!order || order.status !== "pending") return order ?? null;
+  if (!order || !canPay(order)) return order ?? null;
+  order.status = "pending";
   order.chargeId = chargeId;
   return order;
 }
@@ -60,9 +66,11 @@ export function markPaid(orderId: string, chargeId: string): Order | null {
   return order;
 }
 
-export function markFailed(orderId: string): Order | null {
+// Only the order's latest charge can fail it, so a late post about an earlier
+// attempt doesn't undo a retry that is under way.
+export function markFailed(orderId: string, chargeId: string): Order | null {
   const order = store.get(orderId);
-  if (order && order.status === "pending") order.status = "failed";
+  if (order && order.status === "pending" && order.chargeId === chargeId) order.status = "failed";
   return order ?? null;
 }
 

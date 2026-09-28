@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { hasLocale } from "@/lib/i18n";
 import { toTapAmount } from "@/lib/money";
-import { attachCharge, getOrder } from "@/lib/orders";
+import { attachCharge, canPay, getOrder } from "@/lib/orders";
 import { createCharge, TapError } from "@/lib/tap";
 
 // Sample customer for the demo. A real app passes the signed-in customer; Tap
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   // The amount always comes from the order on the server, never from the browser.
   const order = getOrder(orderId);
   if (!order) return NextResponse.json({ error: "no_order" }, { status: 404 });
-  if (order.status !== "pending") return NextResponse.json({ error: "not_pending" }, { status: 409 });
+  if (!canPay(order)) return NextResponse.json({ error: "not_pending" }, { status: 409 });
 
   const base = baseUrl(request);
   try {
