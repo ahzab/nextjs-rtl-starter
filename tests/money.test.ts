@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatMinor, fromMinor, minorDigits, toMinor } from "../lib/money";
+import { formatMinor, fromMinor, fromTapAmount, minorDigits, toMinor, toTapAmount } from "../lib/money";
 
 describe("minorDigits", () => {
   it("knows each currency's minor unit", () => {
@@ -41,5 +41,40 @@ describe("formatMinor", () => {
 
   it("shows three decimals for KWD", () => {
     expect(formatMinor(1250, "KWD", "en")).toContain("1.250");
+  });
+});
+
+describe("toTapAmount / fromTapAmount", () => {
+  it("sends Tap major units", () => {
+    expect(toTapAmount(1000, "SAR")).toBe(10);
+    expect(toTapAmount(4950, "SAR")).toBe(49.5);
+    expect(toTapAmount(1250, "KWD")).toBe(1.25);
+    expect(toTapAmount(1000, "JPY")).toBe(1000);
+  });
+
+  it("reads Tap amounts back into minor units", () => {
+    expect(fromTapAmount(49.5, "SAR")).toBe(4950);
+    expect(fromTapAmount(0.318, "KWD")).toBe(318);
+    expect(fromTapAmount(1000, "JPY")).toBe(1000);
+  });
+
+  it("round-trips without float drift", () => {
+    for (const minor of [1, 99, 1999, 30, 123456]) {
+      expect(fromTapAmount(toTapAmount(minor, "SAR"), "SAR")).toBe(minor);
+      expect(fromTapAmount(toTapAmount(minor, "KWD"), "KWD")).toBe(minor);
+    }
+  });
+});
+
+describe("formatMinor symbols", () => {
+  it("writes ر.س without Intl's closing dot", () => {
+    const out = formatMinor(1000, "SAR", "ar");
+    expect(out).toContain("10.00");
+    expect(out).toContain("ر.س");
+    expect(out).not.toContain("ر.س.");
+  });
+
+  it("writes SAR first in English", () => {
+    expect(formatMinor(1000, "SAR", "en")).toMatch(/^SAR\s10\.00$/);
   });
 });

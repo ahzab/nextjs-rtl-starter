@@ -1,17 +1,25 @@
 // Pure checks, kept apart from the network so they can be tested.
 
-type PaymentLike = { status: string; amount: number; currency: string };
-type OrderLike = { amount: number; currency: string };
+import { fromTapAmount } from "./money";
 
-export type Rejection = "no_order" | "not_paid" | "amount_mismatch" | "currency_mismatch";
+type ChargeLike = { id: string; status: string; amount: number; currency: string };
+type OrderLike = { amount: number; currency: string; chargeId: string | null };
 
-// `captured` is what a manual-capture payment becomes once collected.
-const PAID = new Set(["paid", "captured"]);
+export type Rejection =
+  | "no_order"
+  | "not_captured"
+  | "currency_mismatch"
+  | "amount_mismatch"
+  | "charge_mismatch";
 
-export function checkPayment(payment: PaymentLike, order: OrderLike | null): Rejection | null {
+// The order is looked up by the charge's `reference.order`. A charge only pays
+// for an order if every one of these holds. Amounts are compared in minor units
+// so 10 and 10.00 are equal and 10.001 is not.
+export function checkCharge(charge: ChargeLike, order: OrderLike | null): Rejection | null {
   if (!order) return "no_order";
-  if (!PAID.has(payment.status)) return "not_paid";
-  if (payment.currency !== order.currency) return "currency_mismatch";
-  if (payment.amount !== order.amount) return "amount_mismatch";
+  if (order.chargeId !== charge.id) return "charge_mismatch";
+  if (charge.status !== "CAPTURED") return "not_captured";
+  if (charge.currency !== order.currency) return "currency_mismatch";
+  if (fromTapAmount(charge.amount, charge.currency) !== order.amount) return "amount_mismatch";
   return null;
 }
