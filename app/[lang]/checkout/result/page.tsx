@@ -95,7 +95,7 @@ export default async function ResultPage({ params, searchParams }: PageProps<"/[
   const { charge, reason } = result;
   // Only our own order gets a receipt. A charge for someone else's order, or
   // one we can't find, shows the reason and nothing from Tap's record.
-  const order = reason === "no_order" || reason === "not_found" ? null : getOrder(charge?.reference?.order);
+  const order = reason === "no_order" || reason === "not_found" ? null : await getOrder(charge?.reference?.order);
   // The bank's words only mean something when the charge itself didn't go through.
   const settled = charge && !["INITIATED", "IN_PROGRESS"].includes(charge.status);
   const bank = reason === "not_captured" && settled ? charge.response?.message : undefined;

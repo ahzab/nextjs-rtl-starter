@@ -18,7 +18,7 @@ import { isTestMode } from "@/lib/tap";
 export default async function CheckoutPage({ params }: PageProps<"/[lang]/checkout/[orderId]">) {
   const { lang, orderId } = await params;
   if (!hasLocale(lang)) notFound();
-  const order = getOrder(orderId);
+  const order = await getOrder(orderId);
   if (!order) notFound();
   const t = getDictionary(lang);
   const total = formatMinor(order.amount, order.currency, lang);

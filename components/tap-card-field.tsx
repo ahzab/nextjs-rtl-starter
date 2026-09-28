@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { Alert } from "@/components/alert";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
+import { apiPath } from "@/lib/app-url";
 import type { Locale } from "@/lib/i18n";
 import type { TapToken } from "@/types/tap-card-sdk";
 
@@ -43,7 +44,7 @@ export function TapCardField({ lang, publicKey, merchantId, orderId, amount, cur
     async (token: TapToken) => {
       setPhase("charging");
       try {
-        const res = await fetch("/api/charges", {
+        const res = await fetch(apiPath("/api/charges"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ orderId, token: token.id, lang }),

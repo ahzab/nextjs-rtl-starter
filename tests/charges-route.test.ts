@@ -45,31 +45,31 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("POST /api/charges", () => {
   it("still charges a card token", async () => {
-    const res = await post({ orderId: order().id, token: "tok_abc" });
+    const res = await post({ orderId: (await order()).id, token: "tok_abc" });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ url: "https://tap.example/pay" });
     expect(created[0].source).toEqual({ id: "tok_abc" });
   });
 
   it("charges an Apple Pay token like a card, only with the flag on", async () => {
-    expect((await post({ orderId: order().id, method: "applepay", token: "tok_ap" })).status).toBe(200);
+    expect((await post({ orderId: (await order()).id, method: "applepay", token: "tok_ap" })).status).toBe(200);
     expect(created[0].source).toEqual({ id: "tok_ap" });
     vi.stubEnv("NEXT_PUBLIC_TAP_APPLE_PAY", "");
-    const res = await post({ orderId: order().id, method: "applepay", token: "tok_ap" });
+    const res = await post({ orderId: (await order()).id, method: "applepay", token: "tok_ap" });
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "method_off" });
   });
 
   it("sends KNET as Tap's KNET source on a KWD order and redirects to Tap's page", async () => {
-    const o = order("KWD");
+    const o = await order("KWD");
     const res = await post({ orderId: o.id, method: "knet" });
     expect(await res.json()).toEqual({ url: "https://tap.example/pay" });
     expect(created[0]).toMatchObject({ source: { id: "src_kw.knet" }, amount: 10, currency: "KWD" });
-    expect(getOrder(o.id)!.chargeId).toBe("chg_1");
+    expect((await getOrder(o.id))!.chargeId).toBe("chg_1");
   });
 
   it("refuses KNET on a SAR order before calling Tap", async () => {
-    const res = await post({ orderId: order("SAR").id, method: "knet" });
+    const res = await post({ orderId: (await order("SAR")).id, method: "knet" });
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "wrong_currency" });
     expect(created).toHaveLength(0);
@@ -77,30 +77,30 @@ describe("POST /api/charges", () => {
 
   it("refuses a method whose flag is off", async () => {
     vi.stubEnv("NEXT_PUBLIC_TAP_KNET", "0");
-    const res = await post({ orderId: order("KWD").id, method: "knet" });
+    const res = await post({ orderId: (await order("KWD")).id, method: "knet" });
     expect(await res.json()).toEqual({ error: "method_off" });
     expect(created).toHaveLength(0);
   });
 
   it("refuses a method it doesn't know", async () => {
-    const res = await post({ orderId: order().id, method: "bitcoin" });
+    const res = await post({ orderId: (await order()).id, method: "bitcoin" });
     expect(await res.json()).toEqual({ error: "invalid_method" });
   });
 
   it("sends STC Pay with the number split from its country code and asks for the code", async () => {
     answer = () => ({ id: "chg_stc", status: "INITIATED" });
-    const res = await post({ orderId: order().id, method: "stcpay", phone: "0548220713" });
+    const res = await post({ orderId: (await order()).id, method: "stcpay", phone: "0548220713" });
     expect(await res.json()).toEqual({ otp: true, chargeId: "chg_stc" });
     expect(created[0].source).toEqual({ id: "src_sa.stcpay", phone: { country_code: "966", number: "548220713" } });
   });
 
   it("follows Tap's page for STC Pay when Tap returns one", async () => {
-    const res = await post({ orderId: order().id, method: "stcpay", phone: "548220713" });
+    const res = await post({ orderId: (await order()).id, method: "stcpay", phone: "548220713" });
     expect(await res.json()).toEqual({ url: "https://tap.example/pay" });
   });
 
   it("refuses an STC Pay number that isn't a Saudi mobile", async () => {
-    const res = await post({ orderId: order().id, method: "stcpay", phone: "0112345678" });
+    const res = await post({ orderId: (await order()).id, method: "stcpay", phone: "0112345678" });
     expect(await res.json()).toEqual({ error: "invalid_phone" });
     expect(created).toHaveLength(0);
   });
@@ -109,7 +109,7 @@ describe("POST /api/charges", () => {
     answer = () => {
       throw new TapError(400, "1243", "Tap 400: Requested payment method not enabled");
     };
-    const res = await post({ orderId: order().id, method: "stcpay", phone: "0548220713" });
+    const res = await post({ orderId: (await order()).id, method: "stcpay", phone: "0548220713" });
     expect(res.status).toBe(409);
     expect(await res.json()).toEqual({ error: "method_not_enabled" });
   });
@@ -118,7 +118,7 @@ describe("POST /api/charges", () => {
     answer = () => {
       throw new TapError(500, undefined, "Tap 500");
     };
-    const res = await post({ orderId: order().id, token: "tok_abc" });
+    const res = await post({ orderId: (await order()).id, token: "tok_abc" });
     expect(res.status).toBe(502);
   });
 });

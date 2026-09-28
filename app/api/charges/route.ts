@@ -3,18 +3,13 @@ import { NextResponse } from "next/server";
 import { hasLocale } from "@/lib/i18n";
 import { enabledMethods, saudiMobile, SOURCE_IDS, takesCurrency } from "@/lib/methods";
 import { toTapAmount } from "@/lib/money";
+import { appUrl } from "@/lib/app-url";
 import { attachCharge, canPay, getOrder } from "@/lib/orders";
 import { createCharge, TapError } from "@/lib/tap";
 
 // Sample customer for the demo. A real app passes the signed-in customer; Tap
 // needs a first name plus an email or phone on every charge.
 const SAMPLE_CUSTOMER = { first_name: "Saja", email: "saja@example.com" };
-
-// Where Tap sends the customer back and posts the webhook. APP_URL overrides
-// the request's own origin, which is what you want behind a tunnel (t8).
-function baseUrl(request: Request): string {
-  return (process.env.APP_URL || new URL(request.url).origin).replace(/\/$/, "");
-}
 
 type Source = { id: string; phone?: { country_code: string; number: string } };
 
@@ -42,14 +37,14 @@ export async function POST(request: Request) {
   const lang = typeof body?.lang === "string" && hasLocale(body.lang) ? body.lang : "ar";
 
   // The amount always comes from the order on the server, never from the browser.
-  const order = getOrder(orderId);
+  const order = await getOrder(orderId);
   if (!order) return NextResponse.json({ error: "no_order" }, { status: 404 });
   if (!canPay(order)) return NextResponse.json({ error: "not_pending" }, { status: 409 });
 
   const source = sourceFor(body, order.currency);
   if ("error" in source) return NextResponse.json(source, { status: 400 });
 
-  const base = baseUrl(request);
+  const base = appUrl(request);
   const resultUrl = (id: string) => `${base}/${lang}/checkout/result?tap_id=${encodeURIComponent(id)}`;
   try {
     const charge = await createCharge({
@@ -63,7 +58,7 @@ export async function POST(request: Request) {
       postUrl: `${base}/api/webhooks/tap`,
       lang,
     });
-    attachCharge(order.id, charge.id);
+    await attachCharge(order.id, charge.id);
     console.info("[charges] created", charge.id, "for order", order.id, source.id, charge.status);
     // STC Pay texts a code instead of opening a page: the browser asks for it
     // and sends it to /api/charges/<id>/otp. Tap's docs don't say which of the

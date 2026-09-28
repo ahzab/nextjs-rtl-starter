@@ -61,9 +61,9 @@ async function drain() {
   while (pending.length) await pending.shift()!();
 }
 
-function order(chargeId: string) {
-  const o = createOrder({ description: "Test", amount: 1050, currency: "SAR" });
-  attachCharge(o.id, chargeId);
+async function order(chargeId: string) {
+  const o = await createOrder({ description: "Test", amount: 1050, currency: "SAR" });
+  await attachCharge(o.id, chargeId);
   return o;
 }
 
@@ -75,12 +75,12 @@ beforeEach(() => {
 
 describe("POST /api/webhooks/tap", () => {
   it("rejects a bad hash with 403 and does no work", async () => {
-    const o = order("chg_bad");
+    const o = await order("chg_bad");
     charges.set("chg_bad", tapCharge("chg_bad", o.id, "CAPTURED"));
     const res = await send(charges.get("chg_bad")!, "0".repeat(64));
     expect(res.status).toBe(403);
     expect(pending).toHaveLength(0);
-    expect(getOrder(o.id)!.status).toBe("pending");
+    expect((await getOrder(o.id))!.status).toBe("pending");
   });
 
   it("rejects a body that isn't a charge with 400", async () => {
@@ -89,93 +89,93 @@ describe("POST /api/webhooks/tap", () => {
   });
 
   it("answers 200 before touching Tap, then marks a captured order paid", async () => {
-    const o = order("chg_paid");
+    const o = await order("chg_paid");
     charges.set("chg_paid", tapCharge("chg_paid", o.id, "CAPTURED"));
     const res = await send(charges.get("chg_paid")!);
     expect(res.status).toBe(200);
     expect(retrieveCharge).not.toHaveBeenCalled();
     await drain();
     expect(retrieveCharge).toHaveBeenCalledWith("chg_paid");
-    expect(getOrder(o.id)!.status).toBe("paid");
+    expect((await getOrder(o.id))!.status).toBe("paid");
   });
 
   it("changes nothing when the same capture is posted twice", async () => {
-    const o = order("chg_twice");
+    const o = await order("chg_twice");
     charges.set("chg_twice", tapCharge("chg_twice", o.id, "CAPTURED"));
     await send(charges.get("chg_twice")!);
     await drain();
-    const first = { ...getOrder(o.id)! };
+    const first = { ...(await getOrder(o.id))! };
     await send(charges.get("chg_twice")!);
     await drain();
-    expect(getOrder(o.id)).toEqual(first);
+    expect(await getOrder(o.id)).toEqual(first);
   });
 
   it("doesn't mark paid when Tap's own record disagrees with the post", async () => {
-    const o = order("chg_short");
+    const o = await order("chg_short");
     charges.set("chg_short", tapCharge("chg_short", o.id, "CAPTURED", 1));
     await send(charges.get("chg_short")!);
     await drain();
-    expect(getOrder(o.id)!.status).toBe("pending");
+    expect((await getOrder(o.id))!.status).toBe("pending");
   });
 
   for (const status of ["DECLINED", "FAILED", "CANCELLED"]) {
     it(`marks a pending order failed on ${status}`, async () => {
       const id = `chg_${status.toLowerCase()}`;
-      const o = order(id);
+      const o = await order(id);
       charges.set(id, tapCharge(id, o.id, status));
       expect((await send(charges.get(id)!)).status).toBe(200);
       await drain();
-      expect(getOrder(o.id)!.status).toBe("failed");
+      expect((await getOrder(o.id))!.status).toBe("failed");
     });
   }
 
   it("changes nothing when the same failure is posted twice", async () => {
-    const o = order("chg_fail2");
+    const o = await order("chg_fail2");
     charges.set("chg_fail2", tapCharge("chg_fail2", o.id, "DECLINED"));
     await send(charges.get("chg_fail2")!);
     await drain();
-    const first = { ...getOrder(o.id)! };
+    const first = { ...(await getOrder(o.id))! };
     await send(charges.get("chg_fail2")!);
     await drain();
-    expect(getOrder(o.id)).toEqual(first);
+    expect(await getOrder(o.id)).toEqual(first);
   });
 
   it("never fails a paid order", async () => {
-    const o = order("chg_late");
+    const o = await order("chg_late");
     charges.set("chg_late", tapCharge("chg_late", o.id, "CAPTURED"));
     await send(charges.get("chg_late")!);
     await drain();
     charges.set("chg_late", tapCharge("chg_late", o.id, "DECLINED"));
     await send(charges.get("chg_late")!);
     await drain();
-    expect(getOrder(o.id)!.status).toBe("paid");
+    expect((await getOrder(o.id))!.status).toBe("paid");
   });
 
   it("ignores a failure for an earlier charge once the customer retried", async () => {
-    const o = order("chg_first");
-    attachCharge(o.id, "chg_second");
+    const o = await order("chg_first");
+    await attachCharge(o.id, "chg_second");
     charges.set("chg_first", tapCharge("chg_first", o.id, "DECLINED"));
     await send(charges.get("chg_first")!);
     await drain();
-    expect(getOrder(o.id)!.status).toBe("pending");
+    expect((await getOrder(o.id))!.status).toBe("pending");
   });
 
   it("lets a failed order be retried with a new charge", async () => {
-    const o = order("chg_retry1");
+    const o = await order("chg_retry1");
     charges.set("chg_retry1", tapCharge("chg_retry1", o.id, "DECLINED"));
     await send(charges.get("chg_retry1")!);
     await drain();
-    expect(getOrder(o.id)!.status).toBe("failed");
-    attachCharge(o.id, "chg_retry2");
-    expect(getOrder(o.id)).toMatchObject({ status: "pending", chargeId: "chg_retry2" });
+    expect((await getOrder(o.id))!.status).toBe("failed");
+    await attachCharge(o.id, "chg_retry2");
+    expect(await getOrder(o.id)).toMatchObject({ status: "pending", chargeId: "chg_retry2" });
   });
 
   it("trusts Tap's status over the post's", async () => {
-    const o = order("chg_liar");
+    const o = await order("chg_liar");
     charges.set("chg_liar", tapCharge("chg_liar", o.id, "DECLINED"));
     // A correctly signed CAPTURED post, while Tap's record says DECLINED.
     await send({ ...charges.get("chg_liar")!, status: "CAPTURED" });
     await drain();
-    expect(getOrder(o.id)!.status).toBe("pending");
+    expect((await getOrder(o.id))!.status).toBe("pending");
   });
 });
