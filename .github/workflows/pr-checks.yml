@@ -1,0 +1,52 @@
+name: pr-checks
+
+# solo-scaffold: managed by bin/product-scaffold.sh — safe to edit by hand.
+#
+# The CI gate for merging into the default branch. That branch is what the
+# deploy target builds for PRODUCTION, so this workflow is the thing standing
+# between a red build and a live deploy.
+#
+# It also exists so branch protection has a check to require, which is what
+# makes auto-merge meaningful. On a branch with NO required checks, GitHub's
+# auto-merge fires the moment it is enabled, so "merge when CI is green"
+# silently becomes "merge now". bin/automerge.sh in the solo repo refuses that
+# case, and refuses a PR whose only checks are the deploy target's own status
+# (which goes green on a build nothing linted, typechecked or tested).
+#
+# The job name below is what bin/automerge.sh matches against, via
+# `required_check:` in products/nextjs-rtl-starter/product.md. Renaming the job means
+# updating that key, or automerge will refuse the PR as missing its CI check.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# A new push to the same PR makes the previous run irrelevant — cancel it
+# rather than burning minutes and leaving a stale check on the merge gate.
+concurrency:
+  group: pr-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pr-checks:
+    name: pr-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm run check
+
+      - name: Build
+        run: npm run build

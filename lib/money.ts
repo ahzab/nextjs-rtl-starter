@@ -18,7 +18,9 @@ export function fromMinor(minor: number, currency: string): number {
 }
 
 export function formatMinor(minor: number, currency: string, locale: string): string {
-  return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-SA", {
+  // Western digits in both languages: every priced Arabic site checked uses
+  // them, and plain "ar-SA" would switch to Arabic-Indic numerals.
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SA-u-nu-latn" : "en-SA", {
     style: "currency",
     currency,
   }).format(fromMinor(minor, currency));
