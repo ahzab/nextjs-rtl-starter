@@ -16,7 +16,8 @@ export async function CartButton({ lang }: { lang: Locale }) {
     >
       <ShoppingCart className="size-[22px]" aria-hidden />
       {count > 0 ? (
-        <span className="absolute end-0.5 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground tabular-nums">
+        // Keyed on the count, so the badge replays its pop whenever it changes.
+        <span key={count} className="motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300 absolute end-0.5 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground tabular-nums">
           {count}
         </span>
       ) : null}

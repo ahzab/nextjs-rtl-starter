@@ -1,8 +1,9 @@
-import { ChevronLeft, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Alert } from "@/components/alert";
+import { BackLink } from "@/components/back-link";
 import { Heading } from "@/components/heading";
 import { StorePage } from "@/components/store-page";
 import { PaymentMethods, type MethodState } from "@/components/payment-methods";
@@ -25,12 +26,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[lang]/checko
   const total = formatMinor(order.amount, order.currency, lang);
   const publicKey = process.env.NEXT_PUBLIC_TAP_PUBLIC_KEY;
 
-  const back = (
-    <Link href={`/${lang}`} className="flex w-fit items-center gap-1.5 text-sm">
-      <ChevronLeft className="size-[18px] rtl:rotate-180" aria-hidden />
-      {t.checkout.back}
-    </Link>
-  );
+  const back = <BackLink href={`/${lang}`} label={t.checkout.back} className="-my-2" />;
 
   const summary = (
     <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card px-[18px] py-4">

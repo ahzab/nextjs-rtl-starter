@@ -29,9 +29,15 @@ async function checkout(lang: Locale, cart: Cart) {
   redirect(`/${lang}/checkout/${order.id}`);
 }
 
-export async function addToCartAction(productId: string, form?: FormData) {
-  if (!getProduct(productId)) return;
-  await writeCart(addToCart(await readCart(), productId, quantityFrom(form)));
+export type AddToCartResult = { ok: boolean; quantity: number; at: number };
+
+// Returns what happened so the button can say so. `at` makes two adds of the
+// same quantity distinct results.
+export async function addToCartAction(productId: string, form?: FormData): Promise<AddToCartResult> {
+  const quantity = quantityFrom(form);
+  if (!getProduct(productId)) return { ok: false, quantity, at: Date.now() };
+  await writeCart(addToCart(await readCart(), productId, quantity));
+  return { ok: true, quantity, at: Date.now() };
 }
 
 export async function setQuantityAction(productId: string, quantity: number) {

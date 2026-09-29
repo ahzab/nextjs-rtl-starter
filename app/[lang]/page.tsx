@@ -1,10 +1,10 @@
-import { BadgeCheck, CreditCard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Heading, Lead } from "@/components/heading";
 import { Receipt } from "@/components/receipt";
 import { ProductCard } from "@/components/store/product-card";
+import { TrustPoints } from "@/components/store/trust-points";
 import { StorePage } from "@/components/store-page";
 import { buttonVariants } from "@/components/ui/button";
 import { countLabel, getDictionary, hasLocale } from "@/lib/i18n";
@@ -12,7 +12,6 @@ import { CATEGORIES, getProduct, PRODUCTS, STORE_CURRENCY, unitPrice } from "@/l
 import { cn } from "@/lib/utils";
 
 const REPO_URL = "https://github.com/ahzab/nextjs-rtl-starter";
-const TRUST_ICONS = [ShieldCheck, BadgeCheck, CreditCard];
 
 // Screen 1: the demo store. Every product can go to the cart or straight to
 // checkout from its own page.
@@ -59,22 +58,7 @@ export default async function StoreHome({ params }: PageProps<"/[lang]">) {
         </figure>
       </section>
 
-      <ul className="m-0 grid list-none grid-cols-1 divide-y divide-border rounded-2xl border border-border bg-card p-0 md:grid-cols-3 md:gap-4 md:divide-y-0 md:rounded-none md:border-0 md:bg-transparent">
-        {h.trust.map((item, i) => {
-          const Icon = TRUST_ICONS[i];
-          return (
-            <li key={item.title} className="flex items-start gap-3 px-4 py-3.5 md:rounded-2xl md:border md:border-border md:bg-card md:px-5 md:py-4">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-soft-foreground">
-                <Icon className="size-[18px]" aria-hidden />
-              </span>
-              <span className="flex flex-col gap-0.5">
-                <strong className="text-[15px] font-semibold">{item.title}</strong>
-                <span className="text-[13px] leading-relaxed text-muted-foreground">{item.body}</span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+      <TrustPoints lang={lang} variant="strip" />
 
       <section id="products" aria-labelledby="products-title" className="flex scroll-mt-6 flex-col gap-5 pt-4 md:gap-6 md:pt-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
