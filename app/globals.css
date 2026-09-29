@@ -92,6 +92,15 @@
   --sidebar-accent-foreground: #1c2230;
   --sidebar-border: #e4ded3;
   --sidebar-ring: #0f6e63;
+  /* Category tints for the placeholder product images, one per shelf. */
+  --tint-coffee: #efe3d4;
+  --tint-coffee-fg: #8a5a3b;
+  --tint-dates: #f4e7cd;
+  --tint-dates-fg: #94641a;
+  --tint-incense: #eee2e8;
+  --tint-incense-fg: #7d4d68;
+  --tint-tools: #dfece8;
+  --tint-tools-fg: #0f6e63;
 }
 
 .dark {
@@ -130,6 +139,14 @@
   --sidebar-accent-foreground: #ede7dc;
   --sidebar-border: #2c333e;
   --sidebar-ring: #3fbfa8;
+  --tint-coffee: #2d2621;
+  --tint-coffee-fg: #d7a984;
+  --tint-dates: #2e2819;
+  --tint-dates-fg: #e8b04b;
+  --tint-incense: #2b2229;
+  --tint-incense-fg: #cfa0bd;
+  --tint-tools: #172f2b;
+  --tint-tools-fg: #3fbfa8;
 }
 
 @layer base {
@@ -170,4 +187,27 @@
   .stamp {
     animation: none;
   }
+}
+.tint-coffee {
+  background: var(--tint-coffee);
+  color: var(--tint-coffee-fg);
+}
+.tint-dates {
+  background: var(--tint-dates);
+  color: var(--tint-dates-fg);
+}
+.tint-incense {
+  background: var(--tint-incense);
+  color: var(--tint-incense-fg);
+}
+.tint-tools {
+  background: var(--tint-tools);
+  color: var(--tint-tools-fg);
+}
+
+/* A faint dotted ground behind the hero receipt. */
+.hero-ground {
+  background-color: var(--muted);
+  background-image: radial-gradient(var(--dashed) 1px, transparent 1px);
+  background-size: 18px 18px;
 }

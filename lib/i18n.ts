@@ -33,6 +33,18 @@ const ar = {
     subtitle: "متجر تجريبي لتجربة الدفع بمدى وApple Pay وSTC Pay وVisa وMastercard، مع التحقق من كل دفعة على الخادم. لا شيء هنا للبيع فعلًا.",
     products: "المنتجات",
     code: "الكود على GitHub",
+    shop: "تسوّق المنتجات",
+    shelves: "الأقسام",
+    allProducts: "كل المنتجات",
+    count: "{count} منتجات",
+    countOne: "منتج واحد",
+    countTwo: "منتجان",
+    sampleOrder: "مثال لإيصال بعد الدفع",
+    trust: [
+      { title: "تحقق على الخادم", body: "كل دفعة تُقرأ من Tap قبل أن تُعتبر مدفوعة." },
+      { title: "\u20663-D Secure\u2069", body: "البنك يؤكد الدفع في صفحته." },
+      { title: "البطاقة عند Tap", body: "بيانات البطاقة لا تمر عبر خادمنا." },
+    ],
   },
   store: {
     home: "الرئيسية",
@@ -46,6 +58,14 @@ const ar = {
     each: "للقطعة",
     sample: "منتج تجريبي لتجربة الدفع.",
     related: "قد يعجبك أيضًا",
+    inStock: "متوفر",
+    sampleBadge: "منتج تجريبي",
+    continueShopping: "متابعة التسوق",
+    nav: "التنقل",
+    breadcrumb: "مسار التنقل",
+    items: "{count} قطع",
+    itemOne: "قطعة واحدة",
+    itemTwo: "قطعتان",
     cart: "السلة",
     cartLabel: "السلة، {count} منتجات",
     emptyCart: "السلة فارغة.",
@@ -158,6 +178,18 @@ const en: typeof ar = {
     subtitle: "A demo store to try mada, Apple Pay, STC Pay, Visa and Mastercard, with every payment checked on the server. Nothing here is really for sale.",
     products: "Products",
     code: "Code on GitHub",
+    shop: "Shop products",
+    shelves: "Shop by category",
+    allProducts: "All products",
+    count: "{count} items",
+    countOne: "1 item",
+    countTwo: "2 items",
+    sampleOrder: "A sample receipt after payment",
+    trust: [
+      { title: "Checked on the server", body: "Every payment is read back from Tap before it counts as paid." },
+      { title: "3-D Secure", body: "The bank confirms the payment on its own page." },
+      { title: "Cards stay with Tap", body: "Card details never touch our server." },
+    ],
   },
   store: {
     home: "Home",
@@ -171,6 +203,14 @@ const en: typeof ar = {
     each: "each",
     sample: "A sample product for trying the checkout.",
     related: "You may also like",
+    inStock: "In stock",
+    sampleBadge: "Sample product",
+    continueShopping: "Continue shopping",
+    nav: "Main",
+    breadcrumb: "Breadcrumb",
+    items: "{count} items",
+    itemOne: "1 item",
+    itemTwo: "2 items",
     cart: "Cart",
     cartLabel: "Cart, {count} items",
     emptyCart: "Your cart is empty.",
@@ -259,3 +299,10 @@ const en: typeof ar = {
 
 export type Dictionary = typeof ar;
 export const getDictionary = (locale: Locale): Dictionary => (locale === "ar" ? ar : en);
+
+// Arabic counts change form at 1 and 2; English reads the same through {count}.
+export function countLabel(n: number, one: string, two: string, many: string): string {
+  if (n === 1) return one;
+  if (n === 2) return two;
+  return many.replace("{count}", String(n));
+}
