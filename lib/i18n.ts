@@ -40,12 +40,12 @@ const ar = {
     countOne: "منتج واحد",
     countTwo: "منتجان",
     sampleOrder: "مثال لإيصال بعد الدفع",
-    trust: [
-      { title: "تحقق على الخادم", body: "كل دفعة تُقرأ من Tap قبل أن تُعتبر مدفوعة." },
-      { title: "\u20663-D Secure\u2069", body: "البنك يؤكد الدفع في صفحته." },
-      { title: "البطاقة عند Tap", body: "بيانات البطاقة لا تمر عبر خادمنا." },
-    ],
   },
+  trust: [
+    { title: "تحقق على الخادم", body: "كل دفعة تُقرأ من Tap قبل أن تُعتبر مدفوعة." },
+    { title: "\u20663-D Secure\u2069", body: "البنك يؤكد الدفع في صفحته." },
+    { title: "البطاقة عند Tap", body: "بيانات البطاقة لا تمر عبر خادمنا." },
+  ],
   store: {
     home: "الرئيسية",
     categories: { coffee: "قهوة", dates: "تمور", incense: "بخور", tools: "أدوات القهوة" },
@@ -62,6 +62,15 @@ const ar = {
     sampleBadge: "منتج تجريبي",
     continueShopping: "متابعة التسوق",
     nav: "التنقل",
+    adding: "جارٍ الإضافة…",
+    added: "أُضيف",
+    addedToast: "أُضيف إلى السلة",
+    viewCart: "عرض السلة",
+    addFailed: "تعذّرت الإضافة. حاول مرة أخرى.",
+    removed: "أُزيل من السلة",
+    undo: "تراجع",
+    notifications: "الإشعارات",
+    dismiss: "إغلاق",
     breadcrumb: "مسار التنقل",
     items: "{count} قطع",
     itemOne: "قطعة واحدة",
@@ -185,12 +194,12 @@ const en: typeof ar = {
     countOne: "1 item",
     countTwo: "2 items",
     sampleOrder: "A sample receipt after payment",
-    trust: [
-      { title: "Checked on the server", body: "Every payment is read back from Tap before it counts as paid." },
-      { title: "3-D Secure", body: "The bank confirms the payment on its own page." },
-      { title: "Cards stay with Tap", body: "Card details never touch our server." },
-    ],
   },
+  trust: [
+    { title: "Checked on the server", body: "Every payment is read back from Tap before it counts as paid." },
+    { title: "3-D Secure", body: "The bank confirms the payment on its own page." },
+    { title: "Cards stay with Tap", body: "Card details never touch our server." },
+  ],
   store: {
     home: "Home",
     categories: { coffee: "Coffee", dates: "Dates", incense: "Incense", tools: "Coffee tools" },
@@ -207,6 +216,15 @@ const en: typeof ar = {
     sampleBadge: "Sample product",
     continueShopping: "Continue shopping",
     nav: "Main",
+    adding: "Adding…",
+    added: "Added",
+    addedToast: "Added to your cart",
+    viewCart: "View cart",
+    addFailed: "Couldn't add it. Try again.",
+    removed: "Removed from your cart",
+    undo: "Undo",
+    notifications: "Notifications",
+    dismiss: "Dismiss",
     breadcrumb: "Breadcrumb",
     items: "{count} items",
     itemOne: "1 item",
@@ -306,3 +324,14 @@ export function countLabel(n: number, one: string, two: string, many: string): s
   if (n === 2) return two;
   return many.replace("{count}", String(n));
 }
+
+// The add-to-cart button's words, from the store dictionary.
+export const addToCartLabels = (s: Dictionary["store"]) => ({
+  add: s.addToCart,
+  adding: s.adding,
+  added: s.added,
+  toastTitle: s.addedToast,
+  viewCart: s.viewCart,
+  failed: s.addFailed,
+});
+

@@ -4,6 +4,7 @@ import { ReceiptText, Search } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+import { EmptyState } from "@/components/empty-state";
 import { LangSwitch } from "@/components/lang-switch";
 import { SiteFooter } from "@/components/site-footer";
 import { buttonVariants } from "@/components/ui/button";
@@ -26,16 +27,19 @@ export default function NotFound() {
         </Link>
         <LangSwitch to={lang === "ar" ? "en" : "ar"} label={t.site.switchLabel} text={t.site.switchTo} />
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-16 text-center">
-        <span className="flex size-14 items-center justify-center rounded-full bg-muted text-foreground">
-          <Search className="size-6" aria-hidden />
-        </span>
-        <h1 className="m-0 text-xl font-semibold md:text-2xl">{t.notFound.title}</h1>
-        <p className="m-0 text-[15px] text-muted-foreground">{t.notFound.body}</p>
-        <p className="m-0 font-mono text-sm text-muted-foreground">404</p>
-        <Link href={`/${lang}`} className={buttonVariants({ size: "lg", className: "mt-2" })}>
-          {t.notFound.back}
-        </Link>
+      <main className="flex flex-1 flex-col items-center justify-center px-5">
+        <EmptyState
+          icon={<Search aria-hidden />}
+          title={t.notFound.title}
+          body={t.notFound.body}
+          action={
+            <Link href={`/${lang}`} className={buttonVariants({ size: "lg" })}>
+              {t.notFound.back}
+            </Link>
+          }
+        >
+          <p className="m-0 font-mono text-sm text-muted-foreground">404</p>
+        </EmptyState>
       </main>
       <SiteFooter lang={lang} />
     </>

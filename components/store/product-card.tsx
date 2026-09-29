@@ -1,11 +1,10 @@
 import Link from "next/link";
 
-import { addToCartAction } from "@/app/[lang]/actions";
+import { AddToCartButton } from "@/components/store/add-to-cart-button";
+import { Price } from "@/components/store/price";
 import { ProductImage } from "@/components/store/product-image";
-import { Button } from "@/components/ui/button";
-import { getDictionary, type Locale } from "@/lib/i18n";
-import { formatMinor } from "@/lib/money";
-import { STORE_CURRENCY, unitPrice, type Product } from "@/lib/products";
+import { addToCartLabels, getDictionary, type Locale } from "@/lib/i18n";
+import { unitPrice, type Product } from "@/lib/products";
 
 export function ProductCard({ product, lang, compact = false }: { product: Product; lang: Locale; compact?: boolean }) {
   const t = getDictionary(lang).store;
@@ -21,13 +20,17 @@ export function ProductCard({ product, lang, compact = false }: { product: Produ
         <Link href={href} className="text-[15px] leading-snug font-medium text-foreground hover:text-primary">
           {product.name[lang]}
         </Link>
-        <span className="tabular pt-0.5 text-base font-semibold whitespace-nowrap">{formatMinor(unitPrice(product), STORE_CURRENCY, lang)}</span>
+        <Price minor={unitPrice(product)} lang={lang} className="pt-0.5 text-base font-semibold" />
       </div>
       {compact ? null : (
-        <form action={addToCartAction.bind(null, product.id)} className="mt-auto">
-          <Button type="submit" variant="outline" size="sm" className="w-full font-medium">
-            {t.addToCart}
-          </Button>
+        <form className="mt-auto">
+          <AddToCartButton
+            productId={product.id}
+            name={product.name[lang]}
+            category={product.category}
+            cartHref={`/${lang}/cart`}
+            labels={addToCartLabels(t)}
+          />
         </form>
       )}
     </article>
