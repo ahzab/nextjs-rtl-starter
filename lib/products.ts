@@ -9,6 +9,9 @@ import { toMinor } from "@/lib/money";
 
 export type Category = "coffee" | "dates" | "incense" | "tools";
 
+// Shelf order on the store home.
+export const CATEGORIES: Category[] = ["coffee", "dates", "incense", "tools"];
+
 export type Product = {
   id: string;
   category: Category;

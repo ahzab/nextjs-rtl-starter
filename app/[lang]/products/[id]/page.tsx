@@ -1,3 +1,4 @@
+import { Check, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -28,12 +29,18 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
   // One form, two buttons: Buy now goes straight to checkout, Add to cart
   // stays here. Both carry the stepper's quantity.
   return (
-    <StorePage lang={lang} banner={t.site.testMode}>
-      <nav aria-label={s.home}>
+    <StorePage lang={lang} banner={t.site.testMode} current="products">
+      <nav aria-label={s.breadcrumb}>
         <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-sm text-muted-foreground">
           <li>
             <Link href={`/${lang}`} className="text-muted-foreground hover:text-primary">
               {s.home}
+            </Link>
+          </li>
+          <li aria-hidden className="text-(--dashed)">/</li>
+          <li>
+            <Link href={`/${lang}#${product.category}`} className="text-muted-foreground hover:text-primary">
+              {s.categories[product.category]}
             </Link>
           </li>
           <li aria-hidden className="text-(--dashed)">/</li>
@@ -43,16 +50,25 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
         </ol>
       </nav>
 
-      <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:items-start md:gap-14">
-        <ProductImage category={product.category} className="md:max-w-[520px]" />
-        <form className="flex flex-col gap-4">
-          <span className="text-[13px] text-muted-foreground">{s.categories[product.category]}</span>
-          <Heading text={product.name[lang]} className="md:text-[34px]" />
-          <span className="tabular text-2xl font-semibold whitespace-nowrap md:text-[26px]">{formatMinor(unitPrice(product), STORE_CURRENCY, lang)}</span>
-          <p className="m-0 text-[15px] leading-[1.8] text-muted-foreground">
+      <div className="flex flex-col gap-6 md:grid md:grid-cols-[1.1fr_1fr] md:items-start md:gap-14">
+        <ProductImage category={product.category} className="aspect-[4/3] rounded-3xl md:aspect-square md:max-w-[560px]" />
+        <form className="flex flex-col gap-4 md:gap-5 md:pt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[13px] text-muted-foreground">{s.categories[product.category]}</span>
+            <span className="rounded-full bg-accent/25 px-2.5 py-0.5 text-xs font-medium text-accent-foreground">{s.sampleBadge}</span>
+          </div>
+          <Heading text={product.name[lang]} className="md:text-[36px]" />
+          <span className="tabular text-2xl font-semibold whitespace-nowrap md:text-[28px]">{formatMinor(unitPrice(product), STORE_CURRENCY, lang)}</span>
+          <p className="m-0 max-w-[52ch] text-[15px] leading-[1.8] text-muted-foreground">
             {product.description[lang]} {s.sample}
           </p>
-          <QuantityStepper label={s.quantity} decrease={s.decrease} increase={s.increase} />
+          <div className="flex items-center gap-4 border-t border-border pt-4 md:pt-5">
+            <QuantityStepper label={s.quantity} decrease={s.decrease} increase={s.increase} />
+            <span className="flex items-center gap-1.5 text-sm text-primary">
+              <Check className="size-4" aria-hidden />
+              {s.inStock}
+            </span>
+          </div>
           <div className="flex flex-col gap-2.5">
             <Button type="submit" size="lg" className="w-full" formAction={buyNowAction.bind(null, lang, product.id)}>
               {s.buyNow}
@@ -61,6 +77,16 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
               {s.addToCart}
             </Button>
           </div>
+          <ul className="m-0 flex list-none flex-col gap-2 rounded-2xl bg-muted p-4 text-[13px] leading-relaxed text-muted-foreground">
+            {t.home.trust.map((item) => (
+              <li key={item.title} className="flex items-start gap-2">
+                <ShieldCheck className="mt-[3px] size-4 shrink-0 text-primary" aria-hidden />
+                <span>
+                  <strong className="font-semibold text-foreground">{item.title}.</strong> {item.body}
+                </span>
+              </li>
+            ))}
+          </ul>
         </form>
       </div>
 
